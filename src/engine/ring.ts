@@ -73,9 +73,6 @@ export function generateRingDot(size: number, t: number, index: number, options:
   const cx = size / 2;
   const cy = size / 2;
   const radius = (size / 2) * 0.78;
-  const spin = options.spin;
-  const cameraTilt = 0.3;
-  const project = makeProj(t * 0.1 * spin, cameraTilt, cx, cy, 1);
   const scale = radiusScale(size, options.rsPow);
   const lanes = Math.max(1, Math.round(options.lanes * options.bandMul));
   const lane = Math.floor(index / options.segs);
@@ -85,27 +82,19 @@ export function generateRingDot(size: number, t: number, index: number, options:
   const angle = (segment / options.segs) * 2 * Math.PI;
   const wobble =
     (0.16 * Math.sin(angle * 3 - t * 1.7 + lane * 0.22) + 0.07 * Math.sin(angle * 5 + t * 1.1)) * options.wobMul;
-  const yaw = t * 0.24 * spin;
-  const tilt = options.faceOn ? -cameraTilt : 0.55 + 0.3 * Math.sin(t * 0.18) * spin;
-  const ux = Math.cos(yaw);
-  const uy = 0;
-  const uz = Math.sin(yaw);
-  const vx = -uz * Math.sin(tilt);
-  const vy = Math.cos(tilt);
-  const vz = ux * Math.sin(tilt);
-  const nx = -uz * vy;
-  const ny = uz * vx - ux * vz;
-  const nz = ux * vy - uy * vx;
   const wobbleAmplitude = 0.23 * options.wobMul;
-  const baseRadius = options.faceOn ? radius / (1 + 0.85 * wobbleAmplitude) : radius;
-  const radial = options.faceOn ? 1 + wobble : 1;
-  const offset = options.faceOn ? laneOffset : laneOffset + wobble;
-  const x = ux * Math.cos(angle) + vx * Math.sin(angle) + nx * offset;
-  const y = vy * Math.sin(angle) + ny * offset;
-  const z = uz * Math.cos(angle) + vz * Math.sin(angle) + nz * offset;
-  const length = Math.sqrt(x * x + y * y + z * z);
-  const rr = baseRadius * radial;
-  const [px, py, projectedZ] = project((x / length) * rr, (y / length) * rr, (z / length) * rr);
+  const baseRadius = radius / (1 + 0.85 * wobbleAmplitude);
+  const cosAngle = Math.cos(angle);
+  const sinAngle = Math.sin(angle);
+  // The face-on camera rotation preserves length and cancels during the
+  // matching projection, leaving a circle plus the lane's depth offset.
+  const length = Math.sqrt(1 + laneOffset * laneOffset);
+  const rr = baseRadius * (1 + wobble);
+  const normalizedX = (cosAngle / length) * rr;
+  const projectedY = (sinAngle / length) * rr;
+  const projectedZ = (laneOffset / length) * rr;
+  const px = cx + normalizedX;
+  const py = cy - projectedY;
   const depth = (projectedZ / radius + 1) / 2;
   return {
     x: px,

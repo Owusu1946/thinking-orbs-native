@@ -1,106 +1,107 @@
 import React, { useEffect, useMemo } from 'react';
 import { AppState, StyleSheet, useColorScheme, View } from 'react-native';
-import { Atlas, Canvas, Skia, useRSXformBuffer, useColorBuffer, useClock } from '@shopify/react-native-skia';
-import { useReducedMotion, useSharedValue } from 'react-native-reanimated';
-import type { SkColor, SkImage, SkRect, SkRSXform } from '@shopify/react-native-skia';
-import { generateRingDot } from './engine/ring';
-import { RING_PRESETS } from './engine/presets';
+import { Canvas, Path, usePathValue } from '@shopify/react-native-skia';
+import { useDerivedValue, useFrameCallback, useReducedMotion, useSharedValue } from 'react-native-reanimated';
+import type { SharedValue } from 'react-native-reanimated';
+import { resolvePreset } from './engine/all-presets';
+import { radiusScale } from './engine/core';
+import { generateFrame } from './engine/modes';
+import type { OrbFrame } from './engine/modes';
 import type { ThinkingOrbProps } from './types';
 
-const LABEL = 'Thinking…';
+const LABELS = {
+  working: 'Working…', searching: 'Searching…', solving: 'Solving…', listening: 'Listening…',
+  connecting: 'Connecting…', weaving: 'Weaving…', composing: 'Composing…', breathing: 'Thinking…', shaping: 'Shaping…',
+} as const;
+const DOT_BUCKETS = 6;
+const LINE_BUCKETS = 3;
 
-function createDotImage(): SkImage {
-  const surface = Skia.Surface.MakeOffscreen(64, 64);
-  if (!surface) throw new Error('Unable to create the thinking orb dot texture.');
-  const canvas = surface.getCanvas();
-  const paint = Skia.Paint();
-  paint.setColor(Skia.Color('white'));
-  canvas.drawCircle(32, 32, 32, paint);
-  const image = surface.makeImageSnapshot();
-  surface.dispose();
-  return image;
+function compositeInk(white: number, alpha: number, dark: boolean) {
+  'worklet';
+  const clampedWhite = Math.min(1, Math.max(0, white));
+  const clampedAlpha = Math.min(1, Math.max(0, alpha));
+  return dark ? clampedAlpha * (1 - clampedWhite) : 1 - clampedAlpha * (1 - clampedWhite);
 }
 
-function useDotTexture() {
-  return useMemo(createDotImage, []);
+function DotBucket({ bucket, dark, frame }: { bucket: number; dark: boolean; frame: SharedValue<OrbFrame> }) {
+  const path = usePathValue((nextPath) => {
+    'worklet';
+    const dots = frame.value.dots;
+    for (let index = 0; index < dots.length; index++) {
+      const dot = dots[index];
+      const ink = compositeInk(dot.white, dot.a ?? 1, dark);
+      const dotBucket = Math.min(DOT_BUCKETS - 1, Math.floor(ink * DOT_BUCKETS));
+      if (dotBucket === bucket) nextPath.addCircle(dot.x, dot.y, dot.r);
+    }
+  });
+  const gray = Math.round(((bucket + 0.5) / DOT_BUCKETS) * 255);
+  return <Path path={path} color={`rgb(${gray}, ${gray}, ${gray})`} style="fill" />;
+}
+
+function LineBucket({ bucket, dark, frame, strokeWidth }: { bucket: number; dark: boolean; frame: SharedValue<OrbFrame>; strokeWidth: number }) {
+  const path = usePathValue((nextPath) => {
+    'worklet';
+    const lines = frame.value.lines;
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index];
+      const ink = compositeInk(line.white, line.a, dark);
+      const lineBucket = Math.min(LINE_BUCKETS - 1, Math.floor(ink * LINE_BUCKETS));
+      if (lineBucket === bucket) {
+        nextPath.moveTo(line.x1, line.y1);
+        nextPath.lineTo(line.x2, line.y2);
+      }
+    }
+  });
+  const gray = Math.round(((bucket + 0.5) / LINE_BUCKETS) * 255);
+  return <Path path={path} color={`rgb(${gray}, ${gray}, ${gray})`} style="stroke" strokeWidth={strokeWidth} strokeCap="round" />;
 }
 
 export function ThinkingOrb({
-  state = 'breathing',
-  size = 64,
-  theme = 'auto',
-  speed = 1,
-  paused = false,
-  style,
-  accessibilityLabel,
-  testID,
+  state = 'working', size = 64, theme = 'auto', speed = 1, paused = false, style, accessibilityLabel, testID,
 }: ThinkingOrbProps) {
-  void state;
   const scheme = useColorScheme();
   const reducedMotion = useReducedMotion();
   const appState = useSharedValue(AppState.currentState === 'active' ? 1 : 0);
   const pauseValue = useSharedValue(paused ? 1 : 0);
-  const frozenTime = useSharedValue(0.6);
-  const clock = useClock();
-  const texture = useDotTexture();
-  const preset = RING_PRESETS[size];
-  const options = preset.options;
-  const dotCount = Math.max(1, Math.round(options.lanes * options.bandMul) * options.segs);
-  const sprites = useMemo<SkRect[]>(() => Array.from({ length: dotCount }, () => Skia.XYWHRect(0, 0, 64, 64)), [dotCount]);
-
-  useEffect(() => {
-    if (paused && pauseValue.value === 0) {
-      frozenTime.value = reducedMotion ? 0.6 : (clock.value / 1000) * preset.speed * speed;
-    }
-    pauseValue.value = paused ? 1 : 0;
-  }, [clock, frozenTime, pauseValue, paused, preset.speed, reducedMotion, speed]);
-
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (next) => {
-      if (next !== 'active' && appState.value === 1) {
-        frozenTime.value = reducedMotion ? 0.6 : (clock.value / 1000) * preset.speed * speed;
-      }
-      appState.value = next === 'active' ? 1 : 0;
-    });
-    return () => sub.remove();
-  }, [appState, clock, frozenTime, preset.speed, reducedMotion, speed]);
-
+  const animationTime = useSharedValue(0.6);
+  const preset = useMemo(() => resolvePreset(state, size), [size, state]);
   const dark = theme === 'dark' || (theme === 'auto' && scheme !== 'light');
-  const transforms = useRSXformBuffer(dotCount, (transform: SkRSXform, index) => {
+  const dotBuckets = useMemo(
+    () => Array.from({ length: DOT_BUCKETS }, (_, bucket) => dark ? bucket : DOT_BUCKETS - 1 - bucket),
+    [dark]
+  );
+  const lineBuckets = useMemo(
+    () => Array.from({ length: LINE_BUCKETS }, (_, bucket) => dark ? bucket : LINE_BUCKETS - 1 - bucket),
+    [dark]
+  );
+  const lineWidth = Math.max(0.6, (preset.options.lineW ?? 0.8) * radiusScale(size, preset.options.rsPow ?? 0.6));
+
+  useEffect(() => { pauseValue.value = paused ? 1 : 0; }, [pauseValue, paused]);
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (next) => { appState.value = next === 'active' ? 1 : 0; });
+    return () => subscription.remove();
+  }, [appState]);
+  useFrameCallback((frameInfo) => {
     'worklet';
-    const time = reducedMotion ? 0.6 : (clock.value / 1000) * preset.speed * speed;
-    const running = appState.value === 1 && pauseValue.value === 0;
-    const dot = generateRingDot(size, running ? time : frozenTime.value, index, options);
-    const scale = (dot.r * 2) / 64;
-    transform.set(scale, 0, dot.x - 32 * scale, dot.y - 32 * scale);
+    if (reducedMotion || appState.value === 0 || pauseValue.value === 1) return;
+    // Avoid turning a background stall or dropped frame into a visible jump.
+    const delta = Math.min(frameInfo.timeSincePreviousFrame ?? 16, 48) / 1000;
+    animationTime.value += delta * preset.speed * speed;
   });
-  const colors = useColorBuffer(dotCount, (color: SkColor, index) => {
+
+  const frame = useDerivedValue(() => {
     'worklet';
-    const time = reducedMotion ? 0.6 : (clock.value / 1000) * preset.speed * speed;
-    const running = appState.value === 1 && pauseValue.value === 0;
-    const dot = generateRingDot(size, running ? time : frozenTime.value, index, options);
-    const value = dark ? 1 - dot.white : dot.white;
-    color[0] = value;
-    color[1] = value;
-    color[2] = value;
-    color[3] = dot.a ?? 1;
+    return generateFrame(preset.mode, size, reducedMotion ? 0.6 : animationTime.value, preset.options);
   });
 
   return (
-    <View
-      testID={testID}
-      accessible
-      accessibilityRole="image"
-      accessibilityLabel={accessibilityLabel ?? LABEL}
-      style={[styles.container, { width: size, height: size }, style]}
-    >
+    <View testID={testID} accessible accessibilityRole="image" accessibilityLabel={accessibilityLabel ?? LABELS[state]} style={[styles.container, { width: size, height: size }, style]}>
       <Canvas style={{ width: size, height: size }}>
-        <Atlas image={texture} sprites={sprites} transforms={transforms} colors={colors} />
+        {lineBuckets.map((bucket) => <LineBucket key={`line-${bucket}`} bucket={bucket} dark={dark} frame={frame} strokeWidth={lineWidth} />)}
+        {dotBuckets.map((bucket) => <DotBucket key={`dot-${bucket}`} bucket={bucket} dark={dark} frame={frame} />)}
       </Canvas>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { display: 'flex' },
-});
+const styles = StyleSheet.create({ container: { display: 'flex' } });

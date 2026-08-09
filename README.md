@@ -2,7 +2,7 @@
 
 React Native implementation of the [thinking-orbs](https://github.com/Jakubantalik/thinking-orbs) indicator family.
 
-The first native renderer is the `breathing` / “thinking” variant. It uses React Native Skia for drawing and Reanimated for a UI-thread animation clock, avoiding per-frame React renders. Every orb is submitted as one batched Skia atlas draw.
+The native renderer supports all nine states from the web package. It uses React Native Skia for drawing and Reanimated for a UI-thread animation clock, avoiding per-frame React renders. Dots are grouped into a small set of persistent Skia paths so the renderer preserves the web version's radius, grayscale, opacity, and depth treatment without creating a React component per dot.
 
 ## Requirements
 
@@ -22,6 +22,6 @@ import { ThinkingOrb } from 'thinking-orbs-native';
 <ThinkingOrb state="breathing" size={64} theme="dark" />
 ```
 
-Supported props in the first milestone are `state="breathing"`, `size={64 | 20}`, `theme`, `speed`, `paused`, `style`, `accessibilityLabel`, and `testID`.
+Supported states are `working`, `searching`, `solving`, `listening`, `connecting`, `weaving`, `composing`, `breathing`, and `shaping`. Supported props are `state`, `size={64 | 20}`, `theme`, `speed`, `paused`, `style`, `accessibilityLabel`, and `testID`.
 
 This package is MIT licensed.
