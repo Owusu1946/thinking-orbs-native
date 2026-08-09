@@ -13,11 +13,11 @@ The native renderer supports all nine states from the web package. It uses React
 Install versions compatible with your React Native or Expo SDK. For a current bare React Native app:
 
 ```bash
-npm install thinking-orbs-native @shopify/react-native-skia react-native-reanimated react-native-worklets
+npm install @mhaadi/thinking-orbs-native @shopify/react-native-skia react-native-reanimated react-native-worklets
 ```
 
 ```tsx
-import { ThinkingOrb } from 'thinking-orbs-native';
+import { ThinkingOrb } from '@mhaadi/thinking-orbs-native';
 
 <ThinkingOrb state="breathing" size={64} theme="dark" />
 ```
@@ -41,13 +41,14 @@ prints the exact npm tarball contents without publishing it.
 
 ## Publishing
 
-Publishing requires npm authentication for the `thinking-orbs-native` package.
+Publishing requires npm authentication for the `@mhaadi/thinking-orbs-native` package.
 After updating the version and changelog, run:
 
 ```bash
 pnpm run release:check
-pnpm publish
+pnpm publish --access public
 ```
 
 The package publishes compiled JavaScript and TypeScript declarations from
-`dist/`, with npm provenance enabled by default.
+`dist/`. Local publishing does not require npm provenance; CI can add
+`--provenance` when publishing from a trusted GitHub Actions run.
