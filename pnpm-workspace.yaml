@@ -1,8 +1,15 @@
 packages:
   - '.'
+  - 'apps/*'
+
+allowBuilds:
+  esbuild: set this to true or false
+  workerd: set this to true or false
 
 onlyBuiltDependencies:
   - '@shopify/react-native-skia'
+  - esbuild
   - react-native
   - react-native-reanimated
   - react-native-worklets
+  - workerd
