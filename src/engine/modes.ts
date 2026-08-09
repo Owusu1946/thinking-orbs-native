@@ -5,53 +5,6 @@ import type { ModeOptions } from './profiles';
 
 export interface FrameLine { x1: number; y1: number; x2: number; y2: number; white: number; a: number; w: number }
 export interface OrbFrame { dots: Dot[]; lines: FrameLine[] }
-export interface OrbBucketFrame { dots: number[][]; lines: number[][] }
-
-const DOT_STRIDE = 3;
-const LINE_STRIDE = 4;
-
-export function createBucketFrame(dotBuckets: number, lineBuckets: number): OrbBucketFrame {
-  return {
-    dots: Array.from({ length: dotBuckets }, () => []),
-    lines: Array.from({ length: lineBuckets }, () => []),
-  };
-}
-
-export function generateBucketFrame(
-  target: OrbBucketFrame,
-  mode: ModeKey,
-  size: number,
-  time: number,
-  options: ModeOptions,
-  dark: boolean
-): OrbBucketFrame {
-  'worklet';
-  for (let bucket = 0; bucket < target.dots.length; bucket++) target.dots[bucket].length = 0;
-  for (let bucket = 0; bucket < target.lines.length; bucket++) target.lines[bucket].length = 0;
-
-  const frame = generateFrame(mode, size, time, options);
-  for (let index = 0; index < frame.dots.length; index++) {
-    const dot = frame.dots[index];
-    const alpha = Math.min(1, Math.max(0, dot.a ?? 1));
-    const white = Math.min(1, Math.max(0, dot.white));
-    const ink = dark ? alpha * (1 - white) : 1 - alpha * (1 - white);
-    const bucket = Math.min(target.dots.length - 1, Math.max(0, Math.floor(ink * target.dots.length)));
-    const output = target.dots[bucket];
-    output.push(dot.x, dot.y, dot.r);
-  }
-  for (let index = 0; index < frame.lines.length; index++) {
-    const line = frame.lines[index];
-    const alpha = Math.min(1, Math.max(0, line.a));
-    const white = Math.min(1, Math.max(0, line.white));
-    const ink = dark ? alpha * (1 - white) : 1 - alpha * (1 - white);
-    const bucket = Math.min(target.lines.length - 1, Math.max(0, Math.floor(ink * target.lines.length)));
-    const output = target.lines[bucket];
-    output.push(line.x1, line.y1, line.x2, line.y2);
-  }
-  return target;
-}
-
-export { DOT_STRIDE, LINE_STRIDE };
 
 const TAU = Math.PI * 2;
 const emptyLines: FrameLine[] = [];
