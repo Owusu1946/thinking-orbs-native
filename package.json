@@ -8,23 +8,29 @@
     "node": ">=20"
   },
   "type": "module",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
-  "react-native": "src/index.ts",
-  "types": "src/index.ts",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "react-native": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "source": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "react-native": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "react-native": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
-  "files": ["src", "README.md"],
+  "files": ["dist", "src", "README.md", "LICENSE"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "tsc --noEmit -p tsconfig.json"
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "pack:check": "pnpm build && pnpm exec publint && pnpm pack --dry-run",
+    "prepublishOnly": "pnpm pack:check",
+    "release:check": "pnpm pack:check"
   },
   "peerDependencies": {
     "@shopify/react-native-skia": ">=2.0.0",
@@ -39,6 +45,8 @@
     "react-native": "^0.86.2",
     "react-native-reanimated": "^4.5.3",
     "react-native-worklets": "^0.11.3",
+    "publint": "^0.3.23",
+    "turbo": "^2.10.9",
     "typescript": "^5.9.3"
   }
 }

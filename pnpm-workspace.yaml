@@ -1,0 +1,8 @@
+packages:
+  - '.'
+
+onlyBuiltDependencies:
+  - '@shopify/react-native-skia'
+  - react-native
+  - react-native-reanimated
+  - react-native-worklets

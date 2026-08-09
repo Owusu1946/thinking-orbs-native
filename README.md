@@ -25,3 +25,29 @@ import { ThinkingOrb } from 'thinking-orbs-native';
 Supported states are `working`, `searching`, `solving`, `listening`, `connecting`, `weaving`, `composing`, `breathing`, and `shaping`. Supported props are `state`, `size={64 | 20}`, `theme`, `speed`, `paused`, `style`, `accessibilityLabel`, and `testID`.
 
 This package is MIT licensed.
+
+## Development
+
+This repository is a pnpm workspace managed with Turborepo.
+
+```bash
+pnpm install
+pnpm turbo run typecheck build
+pnpm run release:check
+```
+
+`release:check` builds the package, validates its export map with Publint, and
+prints the exact npm tarball contents without publishing it.
+
+## Publishing
+
+Publishing requires npm authentication for the `thinking-orbs-native` package.
+After updating the version and changelog, run:
+
+```bash
+pnpm run release:check
+pnpm publish
+```
+
+The package publishes compiled JavaScript and TypeScript declarations from
+`dist/`, with npm provenance enabled by default.
