@@ -17,38 +17,11 @@ npm install @mhaadi/thinking-orbs-native @shopify/react-native-skia react-native
 ```
 
 ```tsx
-import { ThinkingOrb } from '@mhaadi/thinking-orbs-native';
+import { ThinkingOrb } from "@mhaadi/thinking-orbs-native";
 
-<ThinkingOrb state="breathing" size={64} theme="dark" />
+<ThinkingOrb state="breathing" size={64} theme="dark" />;
 ```
 
 Supported states are `working`, `searching`, `solving`, `listening`, `connecting`, `weaving`, `composing`, `breathing`, and `shaping`. Supported props are `state`, `size={64 | 20}`, `theme`, `speed`, `paused`, `style`, `accessibilityLabel`, and `testID`.
 
 This package is MIT licensed.
-
-## Development
-
-This repository is a pnpm workspace managed with Turborepo.
-
-```bash
-pnpm install
-pnpm turbo run typecheck build
-pnpm run release:check
-```
-
-`release:check` builds the package, validates its export map with Publint, and
-prints the exact npm tarball contents without publishing it.
-
-## Publishing
-
-Publishing requires npm authentication for the `@mhaadi/thinking-orbs-native` package.
-After updating the version and changelog, run:
-
-```bash
-pnpm run release:check
-pnpm publish --access public
-```
-
-The package publishes compiled JavaScript and TypeScript declarations from
-`dist/`. Local publishing does not require npm provenance; CI can add
-`--provenance` when publishing from a trusted GitHub Actions run.
