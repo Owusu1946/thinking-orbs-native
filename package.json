@@ -1,6 +1,6 @@
 {
   "name": "@mhaadi/thinking-orbs-native",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "High-performance React Native thinking orb indicators.",
   "license": "MIT",
   "packageManager": "pnpm@11.18.0",
