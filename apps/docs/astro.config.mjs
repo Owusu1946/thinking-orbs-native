@@ -1,8 +1,28 @@
 import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+import icon from 'astro-icon';
+import tailwindcss from '@tailwindcss/vite';
+import nimbus, { defineConfig as defineNimbusConfig } from '@cloudflare/nimbus-docs';
+
+const nimbusConfig = defineNimbusConfig({
+  site: 'https://thinking-orbs-native.dev',
+  title: 'Thinking Orbs',
+  description: 'Native-feeling thinking states for React Native.',
+  locale: 'en',
+  github: 'https://github.com/mhaadi/thinking-orbs-native',
+  socialImageAlt: 'Thinking Orbs documentation preview',
+});
 
 export default defineConfig({
-  output: 'server',
-  adapter: cloudflare(),
-  site: 'https://thinking-orbs-native.dev',
+  output: 'static',
+  vite: { plugins: [tailwindcss()] },
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
+  integrations: [
+    icon(),
+    nimbus(nimbusConfig, {
+      rules: {
+        'nimbus/frontmatter-shape': 'error',
+        'nimbus/internal-link': 'error',
+      },
+    }),
+  ],
 });

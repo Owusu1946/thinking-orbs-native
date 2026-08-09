@@ -2,7 +2,32 @@
   "name": "@mhaadi/thinking-orbs-native-docs",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "astro dev", "build": "astro build", "preview": "astro preview", "typecheck": "astro check" },
-  "dependencies": { "@astrojs/cloudflare": "^14.2.0", "astro": "^7.2.0" },
-  "devDependencies": { "@astrojs/check": "^0.9.4", "typescript": "^5.9.3" }
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "preview:cf": "wrangler dev",
+    "typecheck": "astro check",
+    "predeploy": "astro check && astro build",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/nimbus-docs": "^0.9.0",
+    "@bruits/satteri-wasm32-wasi": "^0.9.5",
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@iconify-json/ph": "^1.2.0",
+    "astro": "^7.2.0",
+    "astro-icon": "^1.1.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@tailwindcss/vite": "^4.1.4",
+    "pagefind": "^1.5.2",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.120.0"
+  }
 }
