@@ -85,7 +85,13 @@ const {
         ? parsedDisplaySize
         : engineSize;
       const parsedSpeed = Number(canvas.dataset.speed);
-      speed = Number.isFinite(parsedSpeed) && parsedSpeed > 0 ? parsedSpeed : 1;
+      const nextSpeed = Number.isFinite(parsedSpeed) && parsedSpeed > 0 ? parsedSpeed : 1;
+      if (nextSpeed !== speed && !paused) {
+        const now = performance.now();
+        const phase = ((now - start) / 1000) * preset.speed * speed;
+        start = now - (phase / (preset.speed * nextSpeed)) * 1000;
+      }
+      speed = nextSpeed;
       paused = canvas.dataset.paused === "true";
       const signature = `${state}:${engineSize}:${displaySize}`;
       if (signature !== lastSignature) {
@@ -163,6 +169,8 @@ const {
       }
     });
     const attributes = new MutationObserver(kick);
+    const theme = new MutationObserver(kick);
+    theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-mode"] });
     observer.observe(canvas);
     attributes.observe(canvas, { attributes: true, attributeFilter: ["data-state", "data-orb-size", "data-display-size", "data-speed", "data-paused"] });
     const handleMotionChange = () => kick();
@@ -172,6 +180,7 @@ const {
       frameId = 0;
       observer.disconnect();
       attributes.disconnect();
+      theme.disconnect();
       reducedMotion.removeEventListener("change", handleMotionChange);
     };
   }
