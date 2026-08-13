@@ -85,7 +85,13 @@ const {
         ? parsedDisplaySize
         : engineSize;
       const parsedSpeed = Number(canvas.dataset.speed);
-      speed = Number.isFinite(parsedSpeed) && parsedSpeed > 0 ? parsedSpeed : 1;
+      const nextSpeed = Number.isFinite(parsedSpeed) && parsedSpeed > 0 ? parsedSpeed : 1;
+      if (nextSpeed !== speed && !paused) {
+        const now = performance.now();
+        const phase = ((now - start) / 1000) * preset.speed * speed;
+        start = now - (phase / (preset.speed * nextSpeed)) * 1000;
+      }
+      speed = nextSpeed;
       paused = canvas.dataset.paused === "true";
       const signature = `${state}:${engineSize}:${displaySize}`;
       if (signature !== lastSignature) {
