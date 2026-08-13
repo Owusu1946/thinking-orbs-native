@@ -99,11 +99,22 @@ const {
         lastSignature = signature;
         start = performance.now() - 600;
         elapsed = 0.6;
+        delete canvas.dataset.elapsed;
       }
       if (paused && !wasPaused) {
         elapsed = ((performance.now() - start) / 1000) * preset.speed * speed;
+        canvas.dataset.elapsed = String(elapsed);
       } else if (!paused && wasPaused) {
+        const storedElapsed = Number(canvas.dataset.elapsed);
+        if (Number.isFinite(storedElapsed) && storedElapsed > 0) {
+          elapsed = storedElapsed;
+        }
         start = performance.now() - (elapsed / (preset.speed * speed)) * 1000;
+      } else if (paused) {
+        const storedElapsed = Number(canvas.dataset.elapsed);
+        if (Number.isFinite(storedElapsed) && storedElapsed > 0) {
+          elapsed = storedElapsed;
+        }
       }
       wasPaused = paused;
 
@@ -172,7 +183,7 @@ const {
     const theme = new MutationObserver(kick);
     theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-mode"] });
     observer.observe(canvas);
-    attributes.observe(canvas, { attributes: true, attributeFilter: ["data-state", "data-orb-size", "data-display-size", "data-speed", "data-paused"] });
+    attributes.observe(canvas, { attributes: true, attributeFilter: ["data-state", "data-orb-size", "data-display-size", "data-speed", "data-paused", "data-elapsed"] });
     const handleMotionChange = () => kick();
     reducedMotion.addEventListener("change", handleMotionChange);
     canvas.__orbCleanup = () => {
