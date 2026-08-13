@@ -4,11 +4,11 @@ import tailwindcss from '@tailwindcss/vite';
 import nimbus, { defineConfig as defineNimbusConfig } from '@cloudflare/nimbus-docs';
 
 const nimbusConfig = defineNimbusConfig({
-  site: 'https://thinking-orbs-native.dev',
+  site: 'https://orbs.jakubantalik.com',
   title: 'Thinking Orbs',
   description: 'Native-feeling thinking states for React Native.',
   locale: 'en',
-  github: 'https://github.com/mhaadi/thinking-orbs-native',
+  github: 'https://github.com/Jakubantalik/thinking-orbs',
   socialImageAlt: 'Thinking Orbs documentation preview',
 });
 

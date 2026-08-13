@@ -1,0 +1,208 @@
+---
+import type { OrbSize, OrbState } from "../../../../src/types";
+
+interface Props {
+  state: OrbState;
+  size?: OrbSize;
+  displaySize?: number;
+  speed?: number;
+  paused?: boolean;
+  class?: string;
+}
+
+const {
+  state,
+  size = 64,
+  displaySize = size,
+  speed = 1,
+  paused = false,
+  class: className,
+} = Astro.props;
+---
+
+<canvas
+  class:list={["orb-canvas", className]}
+  data-orb-canvas
+  data-state={state}
+  data-orb-size={size}
+  data-display-size={displaySize}
+  data-speed={speed}
+  data-paused={paused ? "true" : "false"}
+  width={displaySize}
+  height={displaySize}
+  style={`width:${displaySize}px;height:${displaySize}px`}
+  role="img"
+  aria-label={`${state} thinking indicator`}
+></canvas>
+
+<script>
+  import { resolvePreset } from "../../../../src/engine/all-presets";
+  import { generateFrame } from "../../../../src/engine/modes";
+  import type { OrbSize, OrbState } from "../../../../src/types";
+
+  type OrbCanvasElement = HTMLCanvasElement & {
+    __orbCleanup?: () => void;
+  };
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const ORB_SIZES: OrbSize[] = [20, 64];
+
+  function toOrbSize(value: string | undefined): OrbSize {
+    const parsed = Number(value);
+    return ORB_SIZES.includes(parsed as OrbSize) ? (parsed as OrbSize) : 64;
+  }
+
+  function compositeInk(white: number, alpha: number, dark: boolean) {
+    const clampedWhite = Math.min(1, Math.max(0, white));
+    const clampedAlpha = Math.min(1, Math.max(0, alpha));
+    return dark
+      ? clampedAlpha * (1 - clampedWhite)
+      : 1 - clampedAlpha * (1 - clampedWhite);
+  }
+
+  function mountOrb(canvas: OrbCanvasElement) {
+    canvas.__orbCleanup?.();
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    let frameId = 0;
+    let start = performance.now();
+    let elapsed = 0.6;
+    let wasPaused = false;
+    let visible = false;
+    let lastSignature = "";
+    let preset = resolvePreset("working", 64);
+    let engineSize: OrbSize = 64;
+    let displaySize = 64;
+    let speed = 1;
+    let paused = false;
+
+    const sync = () => {
+      const state = (canvas.dataset.state ?? "working") as OrbState;
+      engineSize = toOrbSize(canvas.dataset.orbSize);
+      const parsedDisplaySize = Number(canvas.dataset.displaySize);
+      displaySize = Number.isFinite(parsedDisplaySize) && parsedDisplaySize > 0
+        ? parsedDisplaySize
+        : engineSize;
+      const parsedSpeed = Number(canvas.dataset.speed);
+      const nextSpeed = Number.isFinite(parsedSpeed) && parsedSpeed > 0 ? parsedSpeed : 1;
+      if (nextSpeed !== speed && !paused) {
+        const now = performance.now();
+        const phase = ((now - start) / 1000) * preset.speed * speed;
+        start = now - (phase / (preset.speed * nextSpeed)) * 1000;
+      }
+      speed = nextSpeed;
+      paused = canvas.dataset.paused === "true";
+      const signature = `${state}:${engineSize}:${displaySize}`;
+      if (signature !== lastSignature) {
+        preset = resolvePreset(state, engineSize);
+        lastSignature = signature;
+        start = performance.now() - 600;
+        elapsed = 0.6;
+        delete canvas.dataset.elapsed;
+      }
+      if (paused && !wasPaused) {
+        elapsed = ((performance.now() - start) / 1000) * preset.speed * speed;
+        canvas.dataset.elapsed = String(elapsed);
+      } else if (!paused && wasPaused) {
+        const storedElapsed = Number(canvas.dataset.elapsed);
+        if (Number.isFinite(storedElapsed) && storedElapsed > 0) {
+          elapsed = storedElapsed;
+        }
+        start = performance.now() - (elapsed / (preset.speed * speed)) * 1000;
+      } else if (paused) {
+        const storedElapsed = Number(canvas.dataset.elapsed);
+        if (Number.isFinite(storedElapsed) && storedElapsed > 0) {
+          elapsed = storedElapsed;
+        }
+      }
+      wasPaused = paused;
+
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const pixelSize = Math.round(displaySize * ratio);
+      if (canvas.width !== pixelSize || canvas.height !== pixelSize) {
+        canvas.width = pixelSize;
+        canvas.height = pixelSize;
+        canvas.style.width = `${displaySize}px`;
+        canvas.style.height = `${displaySize}px`;
+      }
+    };
+
+    const draw = (now: number) => {
+      sync();
+      const dark = document.documentElement.dataset.mode === "dark";
+      const ratio = canvas.width / displaySize;
+      const scale = displaySize / engineSize;
+      const time = reducedMotion.matches ? 0.6 : paused
+        ? elapsed
+        : ((now - start) / 1000) * preset.speed * speed;
+      const frame = generateFrame(preset.mode, engineSize, time, preset.options);
+
+      context.setTransform(ratio * scale, 0, 0, ratio * scale, 0, 0);
+      context.clearRect(0, 0, engineSize, engineSize);
+
+      for (const line of frame.lines) {
+        const ink = compositeInk(line.white, line.a, dark);
+        const gray = Math.round(ink * 255);
+        context.beginPath();
+        context.moveTo(line.x1, line.y1);
+        context.lineTo(line.x2, line.y2);
+        context.lineWidth = Math.max(0.6, line.w);
+        context.lineCap = "round";
+        context.strokeStyle = `rgb(${gray} ${gray} ${gray})`;
+        context.stroke();
+      }
+
+      for (const dot of frame.dots) {
+        const ink = compositeInk(dot.white, dot.a ?? 1, dark);
+        const gray = Math.round(ink * 255);
+        context.beginPath();
+        context.arc(dot.x, dot.y, Math.max(0.25, dot.r), 0, Math.PI * 2);
+        context.fillStyle = `rgb(${gray} ${gray} ${gray})`;
+        context.fill();
+      }
+
+      frameId = 0;
+      if (visible && !paused && !reducedMotion.matches) {
+        frameId = requestAnimationFrame(draw);
+      }
+    };
+
+    const kick = () => {
+      if (!frameId) frameId = requestAnimationFrame(draw);
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false;
+      if (visible) kick();
+      else if (frameId) {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+    });
+    const attributes = new MutationObserver(kick);
+    const theme = new MutationObserver(kick);
+    theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-mode"] });
+    observer.observe(canvas);
+    attributes.observe(canvas, { attributes: true, attributeFilter: ["data-state", "data-orb-size", "data-display-size", "data-speed", "data-paused", "data-elapsed"] });
+    const handleMotionChange = () => kick();
+    reducedMotion.addEventListener("change", handleMotionChange);
+    canvas.__orbCleanup = () => {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+      observer.disconnect();
+      attributes.disconnect();
+      theme.disconnect();
+      reducedMotion.removeEventListener("change", handleMotionChange);
+    };
+  }
+
+  function mountAllOrbs() {
+    document.querySelectorAll<OrbCanvasElement>("[data-orb-canvas]").forEach(mountOrb);
+  }
+
+  mountAllOrbs();
+  document.addEventListener("astro:page-load", mountAllOrbs);
+  document.addEventListener("astro:before-swap", () => {
+    document.querySelectorAll<OrbCanvasElement>("[data-orb-canvas]").forEach((canvas) => canvas.__orbCleanup?.());
+  });
+</script>
