@@ -70,8 +70,8 @@
 
 	/* Typography — self-hosted via @fontsource-variable in BaseLayout.astro */
 	--nb-font-sans:
-		"Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, Menlo,
-		Consolas, monospace;
+		"Geist Mono Variable", "Geist Mono", ui-monospace, sfmono-regular, menlo,
+		consolas, monospace;
 	--nb-font-mono: var(--nb-font-sans);
 	--nb-h1-size: 2.1875rem;
 	--nb-h1-weight: 600;

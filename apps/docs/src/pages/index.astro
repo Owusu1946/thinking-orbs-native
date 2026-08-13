@@ -137,17 +137,17 @@ const usageSnippet = `import { ThinkingOrb } from '@mhaadi/thinking-orbs-native'
         <div class="playground" data-playground>
           <div class="controls">
             <div class="control-group">
-              <span class="control-label">state</span>
-              <div class="state-tabs" role="radiogroup" aria-label="Orb state">
-                {states.map(({ state }) => <button class:list={[state === "listening" && "active"]} data-state-option={state}>{state}</button>)}
+              <span class="control-label" id="state-label">state</span>
+              <div class="state-tabs" role="radiogroup" aria-labelledby="state-label">
+                {states.map(({ state }) => <button type="button" role="radio" aria-checked={state === "listening" ? "true" : "false"} tabindex={state === "listening" ? 0 : -1} class:list={[state === "listening" && "active"]} data-state-option={state}>{state}</button>)}
               </div>
             </div>
             <div class="control-row">
               <div class="control-group">
-                <span class="control-label">size</span>
-                <div class="size-tabs">
-                  <button class="active" data-size-option="64">64px</button>
-                  <button data-size-option="20">20px</button>
+                <span class="control-label" id="size-label">size</span>
+                <div class="size-tabs" role="radiogroup" aria-labelledby="size-label">
+                  <button type="button" role="radio" aria-checked="true" tabindex="0" class="active" data-size-option="64">64px</button>
+                  <button type="button" role="radio" aria-checked="false" tabindex="-1" data-size-option="20">20px</button>
                 </div>
               </div>
               <div class="control-group">
@@ -204,8 +204,13 @@ const usageSnippet = `import { ThinkingOrb } from '@mhaadi/thinking-orbs-native'
     const copyButtons = document.querySelectorAll<HTMLButtonElement>("[data-copy]");
     copyButtons.forEach((button) => {
       button.addEventListener("click", async () => {
-        await navigator.clipboard.writeText(button.dataset.copy ?? "");
-        button.textContent = "copied";
+        try {
+          if (!navigator.clipboard) throw new Error("Clipboard unavailable");
+          await navigator.clipboard.writeText(button.dataset.copy ?? "");
+          button.textContent = "copied";
+        } catch {
+          button.textContent = "copy failed";
+        }
         window.setTimeout(() => { button.textContent = "copy"; }, 1200);
       });
     });
@@ -230,6 +235,7 @@ const usageSnippet = `import { ThinkingOrb } from '@mhaadi/thinking-orbs-native'
           canvas.dataset.orbSize = String(size);
           canvas.dataset.displaySize = size === 64 ? "128" : "60";
           canvas.dataset.speed = String(speed);
+          canvas.setAttribute("aria-label", `${state} thinking indicator`);
         }
         if (label) label.textContent = `${state} / ${size}`;
         if (snippet) snippet.textContent = `<ThinkingOrb state="${state}" size={${size}} speed={${speed}} />`;
@@ -238,8 +244,9 @@ const usageSnippet = `import { ThinkingOrb } from '@mhaadi/thinking-orbs-native'
       playground.querySelectorAll<HTMLButtonElement>("[data-state-option]").forEach((button) => {
         button.addEventListener("click", () => {
           state = button.dataset.stateOption ?? state;
-          playground.querySelectorAll("[data-state-option]").forEach((item) => item.classList.remove("active"));
+          playground.querySelectorAll<HTMLElement>("[data-state-option]").forEach((item) => { item.classList.remove("active"); item.setAttribute("aria-checked", "false"); item.tabIndex = -1; });
           button.classList.add("active");
+          button.setAttribute("aria-checked", "true"); button.tabIndex = 0;
           update();
         });
       });
@@ -247,8 +254,9 @@ const usageSnippet = `import { ThinkingOrb } from '@mhaadi/thinking-orbs-native'
       playground.querySelectorAll<HTMLButtonElement>("[data-size-option]").forEach((button) => {
         button.addEventListener("click", () => {
           size = Number(button.dataset.sizeOption ?? size);
-          playground.querySelectorAll("[data-size-option]").forEach((item) => item.classList.remove("active"));
+          playground.querySelectorAll<HTMLElement>("[data-size-option]").forEach((item) => { item.classList.remove("active"); item.setAttribute("aria-checked", "false"); item.tabIndex = -1; });
           button.classList.add("active");
+          button.setAttribute("aria-checked", "true"); button.tabIndex = 0;
           update();
         });
       });
@@ -261,6 +269,18 @@ const usageSnippet = `import { ThinkingOrb } from '@mhaadi/thinking-orbs-native'
           update();
         });
       });
+
+      const setupRadioKeys = (selector: string) => {
+        const options = Array.from(playground.querySelectorAll<HTMLButtonElement>(selector));
+        options.forEach((button, index) => button.addEventListener("keydown", (event) => {
+          if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(event.key)) return;
+          event.preventDefault();
+          const direction = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
+          options[(index + direction + options.length) % options.length]?.focus();
+        }));
+      };
+      setupRadioKeys("[data-state-option]");
+      setupRadioKeys("[data-size-option]");
 
       pause?.addEventListener("click", () => {
         paused = !paused;

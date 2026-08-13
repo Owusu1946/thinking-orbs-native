@@ -45,6 +45,12 @@ const {
   };
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const ORB_SIZES: OrbSize[] = [20, 64];
+
+  function toOrbSize(value: string | undefined): OrbSize {
+    const parsed = Number(value);
+    return ORB_SIZES.includes(parsed as OrbSize) ? (parsed as OrbSize) : 64;
+  }
 
   function compositeInk(white: number, alpha: number, dark: boolean) {
     const clampedWhite = Math.min(1, Math.max(0, white));
@@ -61,6 +67,9 @@ const {
 
     let frameId = 0;
     let start = performance.now();
+    let elapsed = 0.6;
+    let wasPaused = false;
+    let visible = false;
     let lastSignature = "";
     let preset = resolvePreset("working", 64);
     let engineSize: OrbSize = 64;
@@ -70,16 +79,27 @@ const {
 
     const sync = () => {
       const state = (canvas.dataset.state ?? "working") as OrbState;
-      engineSize = Number(canvas.dataset.orbSize ?? 64) as OrbSize;
-      displaySize = Number(canvas.dataset.displaySize ?? engineSize);
-      speed = Number(canvas.dataset.speed ?? 1);
+      engineSize = toOrbSize(canvas.dataset.orbSize);
+      const parsedDisplaySize = Number(canvas.dataset.displaySize);
+      displaySize = Number.isFinite(parsedDisplaySize) && parsedDisplaySize > 0
+        ? parsedDisplaySize
+        : engineSize;
+      const parsedSpeed = Number(canvas.dataset.speed);
+      speed = Number.isFinite(parsedSpeed) && parsedSpeed > 0 ? parsedSpeed : 1;
       paused = canvas.dataset.paused === "true";
       const signature = `${state}:${engineSize}:${displaySize}`;
       if (signature !== lastSignature) {
         preset = resolvePreset(state, engineSize);
         lastSignature = signature;
         start = performance.now() - 600;
+        elapsed = 0.6;
       }
+      if (paused && !wasPaused) {
+        elapsed = ((performance.now() - start) / 1000) * preset.speed * speed;
+      } else if (!paused && wasPaused) {
+        start = performance.now() - (elapsed / (preset.speed * speed)) * 1000;
+      }
+      wasPaused = paused;
 
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
       const pixelSize = Math.round(displaySize * ratio);
@@ -96,8 +116,8 @@ const {
       const dark = document.documentElement.dataset.mode === "dark";
       const ratio = canvas.width / displaySize;
       const scale = displaySize / engineSize;
-      const time = reducedMotion.matches || paused
-        ? 0.6
+      const time = reducedMotion.matches ? 0.6 : paused
+        ? elapsed
         : ((now - start) / 1000) * preset.speed * speed;
       const frame = generateFrame(preset.mode, engineSize, time, preset.options);
 
@@ -125,11 +145,35 @@ const {
         context.fill();
       }
 
-      frameId = requestAnimationFrame(draw);
+      frameId = 0;
+      if (visible && !paused && !reducedMotion.matches) {
+        frameId = requestAnimationFrame(draw);
+      }
     };
 
-    frameId = requestAnimationFrame(draw);
-    canvas.__orbCleanup = () => cancelAnimationFrame(frameId);
+    const kick = () => {
+      if (!frameId) frameId = requestAnimationFrame(draw);
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false;
+      if (visible) kick();
+      else if (frameId) {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+    });
+    const attributes = new MutationObserver(kick);
+    observer.observe(canvas);
+    attributes.observe(canvas, { attributes: true, attributeFilter: ["data-state", "data-orb-size", "data-display-size", "data-speed", "data-paused"] });
+    const handleMotionChange = () => kick();
+    reducedMotion.addEventListener("change", handleMotionChange);
+    canvas.__orbCleanup = () => {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+      observer.disconnect();
+      attributes.disconnect();
+      reducedMotion.removeEventListener("change", handleMotionChange);
+    };
   }
 
   function mountAllOrbs() {
@@ -138,4 +182,7 @@ const {
 
   mountAllOrbs();
   document.addEventListener("astro:page-load", mountAllOrbs);
+  document.addEventListener("astro:before-swap", () => {
+    document.querySelectorAll<OrbCanvasElement>("[data-orb-canvas]").forEach((canvas) => canvas.__orbCleanup?.());
+  });
 </script>
