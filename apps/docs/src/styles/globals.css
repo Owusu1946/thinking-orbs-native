@@ -22,45 +22,70 @@
 :root {
 	color-scheme: light;
 
-	/* Surfaces (paired with foregrounds for contrast) */
+	/* Surfaces (paired with foregrounds for contrast) — hex fallbacks first for iOS 15 / old Safari (no oklch) */
+	--nb-background: #fcfcfc;
 	--nb-background: oklch(0.99 0 0);
+	--nb-foreground: #212121;
 	--nb-foreground: oklch(0.21 0 0);
 
+	--nb-card: #ffffff;
 	--nb-card: oklch(1 0 0);
 	--nb-card-foreground: var(--nb-foreground);
 
+	--nb-muted: #f5f5f5;
 	--nb-muted: oklch(0.967 0 0);
+	--nb-muted-foreground: #737373;
 	--nb-muted-foreground: oklch(0.556 0 0);
 
+	--nb-accent: #f5f5f5;
 	--nb-accent: oklch(0.967 0 0);
 	--nb-accent-foreground: var(--nb-foreground);
 
 	/* Primary action / brand */
+	--nb-primary: #1a1a1a;
 	--nb-primary: oklch(0.145 0 0);
+	--nb-primary-foreground: #fafafa;
 	--nb-primary-foreground: oklch(0.97 0 0);
+	--nb-primary-hover: #525252;
 	--nb-primary-hover: oklch(0.371 0 0);
 
 	/* Borders / focus */
+	--nb-border: #e5e5e5;
 	--nb-border: oklch(0.935 0 0);
+	--nb-border-strong: #d4d4d4;
 	--nb-border-strong: oklch(0.87 0 0);
+	--nb-selected: #e0e0e0;
 	--nb-selected: oklch(0.89 0 0);
+	--nb-ring: rgba(26, 26, 26, 0.35);
 	--nb-ring: oklch(0.145 0 0 / 0.35);
 
 	/* Status colors — paired (saturated for text/border + muted for bg) */
+	--nb-info: #1e60e6;
 	--nb-info: oklch(0.45 0.18 255);
+	--nb-info-foreground: #1e60e6;
 	--nb-info-foreground: oklch(0.45 0.18 255);
+	--nb-info-muted: #eff6ff;
 	--nb-info-muted: oklch(0.965 0.015 255);
 
+	--nb-success: #0e7a4a;
 	--nb-success: oklch(0.42 0.14 152);
+	--nb-success-foreground: #0e7a4a;
 	--nb-success-foreground: oklch(0.42 0.14 152);
+	--nb-success-muted: #ecfdf5;
 	--nb-success-muted: oklch(0.965 0.015 152);
 
+	--nb-warning: #8a5a00;
 	--nb-warning: oklch(0.48 0.15 65);
+	--nb-warning-foreground: #8a5a00;
 	--nb-warning-foreground: oklch(0.48 0.15 65);
+	--nb-warning-muted: #fffbeb;
 	--nb-warning-muted: oklch(0.97 0.02 70);
 
+	--nb-danger: #be123c;
 	--nb-danger: oklch(0.47 0.18 25);
+	--nb-danger-foreground: #be123c;
 	--nb-danger-foreground: oklch(0.47 0.18 25);
+	--nb-danger-muted: #fff1f2;
 	--nb-danger-muted: oklch(0.965 0.015 25);
 
 	/* Layout */
@@ -85,8 +110,11 @@
 	--nb-h4-weight: 600;
 
 	/* Shadows */
+	--nb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
 	--nb-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.04);
+	--nb-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
 	--nb-shadow: 0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
+	--nb-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
 	--nb-shadow-lg: 0 4px 12px oklch(0 0 0 / 0.08), 0 2px 4px oklch(0 0 0 / 0.04);
 }
 
@@ -101,45 +129,71 @@
 [data-mode="dark"] {
 	color-scheme: dark;
 
+	--nb-background: #0f0f0f;
 	--nb-background: oklch(0.085 0 0);
+	--nb-foreground: #f5f5f5;
 	--nb-foreground: oklch(0.97 0 0);
 
 	--nb-card: #0F0F0F;
 	--nb-card-foreground: var(--nb-foreground);
 
 	--nb-muted: #060606;
+	--nb-muted-foreground: #737373;
 	--nb-muted-foreground: oklch(0.556 0 0);
 
+	--nb-accent: #2e2e2e;
 	--nb-accent: oklch(0.269 0 0);
 	--nb-accent-foreground: var(--nb-foreground);
 
+	--nb-primary: #e5e5e5;
 	--nb-primary: oklch(0.9 0 0);
+	--nb-primary-foreground: #0f0f0f;
 	--nb-primary-foreground: oklch(0.085 0 0);
+	--nb-primary-hover: #a3a3a3;
 	--nb-primary-hover: oklch(0.7 0 0);
 
+	--nb-border: #2e2e2e;
 	--nb-border: oklch(0.269 0 0);
+	--nb-border-strong: #525252;
 	--nb-border-strong: oklch(0.371 0 0);
+	--nb-selected: #525252;
 	--nb-selected: oklch(0.371 0 0);
+	--nb-ring: rgba(229, 229, 229, 0.35);
 	--nb-ring: oklch(0.9 0 0 / 0.35);
 
+	--nb-info: #6aa9ff;
 	--nb-info: oklch(0.75 0.12 255);
+	--nb-info-foreground: #6aa9ff;
 	--nb-info-foreground: oklch(0.75 0.12 255);
+	--nb-info-muted: #1a2744;
 	--nb-info-muted: oklch(0.17 0.03 260);
 
+	--nb-success: #4ade8a;
 	--nb-success: oklch(0.72 0.12 150);
+	--nb-success-foreground: #4ade8a;
 	--nb-success-foreground: oklch(0.72 0.12 150);
+	--nb-success-muted: #1a2e22;
 	--nb-success-muted: oklch(0.17 0.025 153);
 
+	--nb-warning: #facc4a;
 	--nb-warning: oklch(0.78 0.11 80);
+	--nb-warning-foreground: #facc4a;
 	--nb-warning-foreground: oklch(0.78 0.11 80);
+	--nb-warning-muted: #2e2512;
 	--nb-warning-muted: oklch(0.19 0.03 70);
 
+	--nb-danger: #ff6b6b;
 	--nb-danger: oklch(0.72 0.14 25);
+	--nb-danger-foreground: #ff6b6b;
 	--nb-danger-foreground: oklch(0.72 0.14 25);
+	--nb-danger-muted: #2e1a1f;
 	--nb-danger-muted: oklch(0.17 0.03 25);
 
+	--nb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
 	--nb-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+	--nb-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
 	--nb-shadow: 0 1px 3px oklch(0 0 0 / 0.3), 0 1px 2px oklch(0 0 0 / 0.2);
+	--nb-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
 	--nb-shadow-lg: 0 4px 12px oklch(0 0 0 / 0.4), 0 2px 4px oklch(0 0 0 / 0.2);
 }
 
@@ -194,17 +248,45 @@
 }
 
 /* ---- Minimal overrides the plugin doesn't cover ---- */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
 html {
 	font-family: var(--nb-font-sans);
 	font-feature-settings: "ss02", "cv01", "cv06", "zero";
 	-webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
+	overscroll-behavior-x: none;
+	scroll-padding-top: 80px;
 	overflow-x: clip;
 }
 
 body {
 	opacity: 1;
 	overflow-x: clip;
+	overscroll-behavior-x: none;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+	display: block;
+	max-width: 100%;
+}
+img,
+video {
+	height: auto;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -214,8 +296,13 @@ body {
 }
 
 ::selection {
+	background: rgba(26, 26, 26, 0.1);
 	background: color-mix(in oklch, var(--nb-primary) 10%, transparent);
 	color: var(--nb-foreground);
+}
+[data-mode="dark"] ::selection {
+	background: rgba(229, 229, 229, 0.1);
+	background: color-mix(in oklch, var(--nb-primary) 10%, transparent);
 }
 
 /* ---- Focus indicators ---- */
@@ -252,8 +339,13 @@ body {
 	background: transparent;
 }
 ::-webkit-scrollbar-thumb {
+	background: rgba(33, 33, 33, 0.2);
 	background: color-mix(in oklch, var(--nb-foreground) 20%, transparent);
 	border-radius: 3px;
+}
+[data-mode="dark"] ::-webkit-scrollbar-thumb {
+	background: rgba(245, 245, 245, 0.2);
+	background: color-mix(in oklch, var(--nb-foreground) 20%, transparent);
 }
 ::-webkit-scrollbar-thumb:hover {
 	background: var(--nb-muted-foreground);
@@ -352,10 +444,15 @@ pre.astro-code span {
 	gap: 0.75rem;
 	padding: 0.5rem 0.875rem;
 	border-bottom: 1px solid var(--nb-border);
+	background: #f5f5f5;
 	background: color-mix(in oklch, var(--nb-muted) 50%, transparent);
 	font-family: var(--nb-font-mono);
 	font-size: 0.75rem;
 	line-height: 1.4;
+}
+[data-mode="dark"] .nb-code-title {
+	background: #0a0a0a;
+	background: color-mix(in oklch, var(--nb-muted) 50%, transparent);
 }
 .nb-code-title-name {
 	color: var(--nb-foreground);
@@ -485,9 +582,25 @@ pre.astro-code .highlighted-word {
 	box-shadow: 0 0 0 1px color-mix(in oklch, var(--nb-info) 30%, transparent);
 }
 
+/* ---- Scrollable code blocks: momentum scroll on iOS (like svg.mhaadi.dev) ---- */
+pre.astro-code,
+.code-block pre,
+.nb-code-figure > pre.astro-code,
+.code-block-body {
+	-webkit-overflow-scrolling: touch;
+}
+
 /* ---- Mobile sidebar toggle ---- */
 
 /* Hide hamburger on pages without a sidebar dialog. */
-body:not(:has([data-mobile-sidebar])) [data-menu-btn] {
-	display: none;
+@supports selector(:has(*)) {
+	body:not(:has([data-mobile-sidebar])) [data-menu-btn] {
+		display: none;
+	}
+}
+/* Fallback for old Safari (no :has): keep button visible but harmless — hide via JS if needed */
+@supports not selector(:has(*)) {
+	body:not([data-has-sidebar]) [data-menu-btn] {
+		display: none;
+	}
 }
