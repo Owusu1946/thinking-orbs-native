@@ -197,10 +197,14 @@
 html {
 	font-family: var(--nb-font-sans);
 	font-feature-settings: "ss02", "cv01", "cv06", "zero";
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+	overflow-x: clip;
 }
 
 body {
 	opacity: 1;
+	overflow-x: clip;
 }
 
 @media (prefers-reduced-motion: no-preference) {
