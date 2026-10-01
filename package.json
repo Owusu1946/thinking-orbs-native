@@ -3,6 +3,10 @@
   "version": "0.1.1",
   "description": "High-performance React Native thinking orb indicators.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mhaadiabu/thinking-orbs-native.git"
+  },
   "packageManager": "pnpm@11.21.0",
   "engines": {
     "node": ">=20"
