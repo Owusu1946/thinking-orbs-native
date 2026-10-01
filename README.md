@@ -2,7 +2,7 @@
 
 React Native implementation of the [thinking-orbs](https://github.com/Jakubantalik/thinking-orbs) indicator family.
 
-The native renderer supports all nine states from the web package. It uses React Native Skia for drawing and Reanimated for a UI-thread animation clock, avoiding per-frame React renders. Dots are grouped into a small set of persistent Skia paths so the renderer preserves the web version's radius, grayscale, opacity, and depth treatment without creating a React component per dot.
+The native renderer supports all nine states from the web package. Reanimated builds and records each frame on the UI thread, and React Native Skia draws the resulting picture without per-frame React renders. The renderer reuses two paints and one picture recorder, preserving each dot's radius, grayscale, opacity, and depth order without creating a React component per dot.
 
 ## Requirements
 
