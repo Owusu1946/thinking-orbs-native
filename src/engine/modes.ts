@@ -1,10 +1,9 @@
 import type { ModeKey } from './all-presets';
-import { fibDir, makeProj, radiusScale } from './core';
-import type { Dot } from './types';
+import { fibDir, finalizeFrame, makeProj, radiusScale } from './core';
+import type { Dot, FrameLine, OrbFrame } from './types';
 import type { ModeOptions } from './profiles';
 
-export interface FrameLine { x1: number; y1: number; x2: number; y2: number; white: number; a: number; w: number }
-export interface OrbFrame { dots: Dot[]; lines: FrameLine[] }
+export type { FrameLine, OrbFrame } from './types';
 
 const TAU = Math.PI * 2;
 const emptyLines: FrameLine[] = [];
@@ -152,7 +151,7 @@ function morph(size: number, t: number, o: ModeOptions): OrbFrame {
   'worklet';
   const cycle = 2.3 * 3, tc = t % cycle, k = Math.floor(tc / 2.3), local = tc - k * 2.3, m = local > 1.4 ? ((local - 1.4) / 0.9) ** 2 * (3 - 2 * ((local - 1.4) / 0.9)) : 0, spread = o.spread ?? 1.45, n = Math.max(6, Math.round(34 * (o.iconD ?? 1))), dots: Dot[] = [];
   const shape = (kind: number, f: number): [number, number] => { const a = -Math.PI / 2 + f * TAU; if (kind === 0) return [Math.cos(a) * 0.24, Math.sin(a) * 0.24]; const v = kind === 1 ? [[0, -0.26], [0.24, 0.16], [-0.24, 0.16]] : [[0, -0.2], [0.2, -0.2], [0.2, 0.2], [-0.2, 0.2], [-0.2, -0.2]]; let total = 0; for (let i = 0; i < v.length; i++) { const a1 = v[i], b = v[(i + 1) % v.length]; total += Math.hypot(b[0] - a1[0], b[1] - a1[1]); } let target = f * total; for (let i = 0; i < v.length; i++) { const a1 = v[i], b = v[(i + 1) % v.length], len = Math.hypot(b[0] - a1[0], b[1] - a1[1]); if (target <= len) return [a1[0] + (b[0] - a1[0]) * target / len, a1[1] + (b[1] - a1[1]) * target / len]; target -= len; } return v[0] as [number, number]; };
-  const pA = k, pB = (k + 1) % 3, pts: [number, number][] = []; let total = 0; for (let i = 0; i < 80; i++) { const f = i / 80, a = shape(pA, f), b = shape(pB, f), p: [number, number] = [(a[0] + (b[0] - a[0]) * m) * spread, (a[1] + (b[1] - a[1]) * m) * spread]; pts.push(p); const q = pts[(i + 79) % 80]; if (i > 0) total += Math.hypot(p[0] - q[0], p[1] - q[1]); }
+  const pA = k, pB = (k + 1) % 3, pts: [number, number][] = []; for (let i = 0; i < 160; i++) { const f = i / 160, a = shape(pA, f), b = shape(pB, f), p: [number, number] = [(a[0] + (b[0] - a[0]) * m) * spread, (a[1] + (b[1] - a[1]) * m) * spread]; pts.push(p); }
   const pathLength = Math.max(0.0001, pts.reduce((sum, p, i) => { const q = pts[(i + 1) % pts.length]; return sum + Math.hypot(q[0] - p[0], q[1] - p[1]); }, 0));
   for (let i = 0; i < n; i++) { const target = i / n * pathLength; let acc = 0; for (let j = 0; j < pts.length; j++) { const a = pts[j], b = pts[(j + 1) % pts.length], len = Math.hypot(b[0] - a[0], b[1] - a[1]); if (acc + len >= target) { const f = len ? (target - acc) / len : 0, pulse = 1 + 0.02 * Math.sin(local * 3.1); dots.push({ x: size / 2 + (a[0] + (b[0] - a[0]) * f) * size * pulse, y: size / 2 + (a[1] + (b[1] - a[1]) * f) * size * pulse, z: 0, r: Math.max(0.35, (o.rDot ?? 0.021) * 1.35 * spread * size), white: 0.1 }); break; } acc += len; } }
   return { dots, lines: emptyLines };
@@ -160,13 +159,17 @@ function morph(size: number, t: number, o: ModeOptions): OrbFrame {
 
 export function generateFrame(mode: ModeKey, size: number, time: number, options: ModeOptions): OrbFrame {
   'worklet';
-  if (mode === 'orbits') return orbits(size, time, options);
-  if (mode === 'globe') return globe(size, time, options);
-  if (mode === 'rubik') return rubik(size, time, options);
-  if (mode === 'wave') return wave(size, time, options);
-  if (mode === 'web') return web(size, time, options);
-  if (mode === 'braid') return braid(size, time, options);
-  if (mode === 'ribbon') return ribbon(size, time, options);
-  if (mode === 'morph') return morph(size, time, options);
-  return ribbon(size, time, options, true);
+  let frame: OrbFrame;
+  switch (mode) {
+    case 'orbits': frame = orbits(size, time, options); break;
+    case 'globe': frame = globe(size, time, options); break;
+    case 'rubik': frame = rubik(size, time, options); break;
+    case 'wave': frame = wave(size, time, options); break;
+    case 'web': frame = web(size, time, options); break;
+    case 'braid': frame = braid(size, time, options); break;
+    case 'ribbon': frame = ribbon(size, time, options); break;
+    case 'morph': frame = morph(size, time, options); break;
+    case 'ring': frame = ribbon(size, time, options, true); break;
+  }
+  return finalizeFrame(frame, options.rMin);
 }
