@@ -138,22 +138,159 @@ function braid(size: number, t: number, o: ModeOptions): OrbFrame {
 
 function web(size: number, t: number, o: ModeOptions): OrbFrame {
   'worklet';
-  const R = size * 0.4, pt = makeProj(t * 0.12, 0.32, size / 2, size / 2, R), rs = radiusScale(size, o.rsPow ?? 0.6), n = o.nodeN ?? 30, nodes: [number, number, number][] = [], dots: Dot[] = [], lines: FrameLine[] = [];
-  for (let i = 0; i < n; i++) { const d = fibDir(i, n), x = d[0] + 0.3 * (vnoise(i * 0.31 + 9, t * 0.24) - 0.5) * 2, y = d[1] + 0.3 * (vnoise(i * 0.53 + 27, t * 0.21) - 0.5) * 2, z = d[2] + 0.3 * (vnoise(i * 0.77 + 55, t * 0.27) - 0.5) * 2, l = Math.sqrt(x * x + y * y + z * z); nodes.push([x / l, y / l, z / l]); }
+  const radius = size * 0.4;
+  const project = makeProj(t * 0.12, 0.32, size / 2, size / 2, radius);
+  const scale = radiusScale(size, o.rsPow ?? 0.6);
+  const nodeCount = o.nodeN ?? 30;
+  const nodes: [number, number, number][] = [];
+  const projected: [number, number, number][] = [];
+  const dots: Dot[] = [];
+  const lines: FrameLine[] = [];
+  for (let index = 0; index < nodeCount; index++) {
+    const direction = fibDir(index, nodeCount);
+    const x = direction[0] + 0.3 * (vnoise(index * 0.31 + 9, t * 0.24) - 0.5) * 2;
+    const y = direction[1] + 0.3 * (vnoise(index * 0.53 + 27, t * 0.21) - 0.5) * 2;
+    const z = direction[2] + 0.3 * (vnoise(index * 0.77 + 55, t * 0.27) - 0.5) * 2;
+    const length = Math.sqrt(x * x + y * y + z * z);
+    const node: [number, number, number] = [x / length, y / length, z / length];
+    nodes.push(node);
+    projected.push(project(...node));
+  }
+
   const threshold = o.thr ?? 0.72;
-  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { const dx = nodes[i][0] - nodes[j][0], dy = nodes[i][1] - nodes[j][1], dz = nodes[i][2] - nodes[j][2], dist = Math.sqrt(dx * dx + dy * dy + dz * dz); if (dist >= threshold) continue; const a = pt(...nodes[i]), b = pt(...nodes[j]), depth = ((a[2] + b[2]) / 2 + 1) / 2; lines.push({ x1: a[0], y1: a[1], x2: b[0], y2: b[1], white: 0.42, a: (1 - dist / threshold) * (0.3 + 0.55 * depth), w: Math.max(0.6, (o.lineW ?? 0.8) * rs) }); }
-  for (let i = 0; i < n; i++) { const p = pt(...nodes[i]), depth = (p[2] + 1) / 2, pulse = 1 + 0.25 * Math.sin(t * 1.4 + i * 2.7); dots.push({ x: p[0], y: p[1], z: p[2], r: ((o.nodeR ?? 1.4) + (o.nodeRDepth ?? 1.8) * depth) * pulse * rs, white: 0.55 - 0.45 * depth }); }
-  const signals = o.signals ?? 5; for (let s = 0; s < signals; s++) { const seg = Math.floor(t * 0.55 + s * 7.31), a = Math.floor(hashD(seg, s * 3.1 + 1.7) * n), b = Math.floor(hashD(seg, s * 5.7 + 4.2) * n); if (a === b) continue; const f = frac(t * 0.55 + s * 7.31), x = lerp(nodes[a][0], nodes[b][0], f), y = lerp(nodes[a][1], nodes[b][1], f), z = lerp(nodes[a][2], nodes[b][2], f), l = Math.max(1e-6, Math.sqrt(x * x + y * y + z * z)), p = pt(x / l, y / l, z / l), depth = (p[2] + 1) / 2; dots.push({ x: p[0], y: p[1], z: p[2], r: ((o.nodeR ?? 1.4) * 1.5 + (o.nodeRDepth ?? 1.8) * depth) * rs, white: 0.05, a: 0.5 + 0.5 * depth }); }
+  const thresholdSquared = threshold * threshold;
+  const lineWidth = Math.max(0.6, (o.lineW ?? 0.8) * scale);
+  for (let index = 0; index < nodeCount; index++) {
+    for (let neighbor = index + 1; neighbor < nodeCount; neighbor++) {
+      const dx = nodes[index][0] - nodes[neighbor][0];
+      const dy = nodes[index][1] - nodes[neighbor][1];
+      const dz = nodes[index][2] - nodes[neighbor][2];
+      const distanceSquared = dx * dx + dy * dy + dz * dz;
+      if (threshold <= 0 || distanceSquared >= thresholdSquared) continue;
+      const distance = Math.sqrt(distanceSquared);
+      const a = projected[index];
+      const b = projected[neighbor];
+      const depth = ((a[2] + b[2]) / 2 + 1) / 2;
+      lines.push({
+        x1: a[0], y1: a[1], x2: b[0], y2: b[1], white: 0.42,
+        a: (1 - distance / threshold) * (0.3 + 0.55 * depth), w: lineWidth,
+      });
+    }
+  }
+  for (let index = 0; index < nodeCount; index++) {
+    const point = projected[index];
+    const depth = (point[2] + 1) / 2;
+    const pulse = 1 + 0.25 * Math.sin(t * 1.4 + index * 2.7);
+    dots.push({
+      x: point[0], y: point[1], z: point[2],
+      r: ((o.nodeR ?? 1.4) + (o.nodeRDepth ?? 1.8) * depth) * pulse * scale,
+      white: 0.55 - 0.45 * depth,
+    });
+  }
+  const signals = o.signals ?? 5;
+  for (let signal = 0; signal < signals; signal++) {
+    const segment = Math.floor(t * 0.55 + signal * 7.31);
+    const a = Math.floor(hashD(segment, signal * 3.1 + 1.7) * nodeCount);
+    const b = Math.floor(hashD(segment, signal * 5.7 + 4.2) * nodeCount);
+    if (a === b) continue;
+    const fraction = frac(t * 0.55 + signal * 7.31);
+    const x = lerp(nodes[a][0], nodes[b][0], fraction);
+    const y = lerp(nodes[a][1], nodes[b][1], fraction);
+    const z = lerp(nodes[a][2], nodes[b][2], fraction);
+    const length = Math.max(1e-6, Math.sqrt(x * x + y * y + z * z));
+    const point = project(x / length, y / length, z / length);
+    const depth = (point[2] + 1) / 2;
+    dots.push({
+      x: point[0], y: point[1], z: point[2],
+      r: ((o.nodeR ?? 1.4) * 1.5 + (o.nodeRDepth ?? 1.8) * depth) * scale,
+      white: 0.05, a: 0.5 + 0.5 * depth,
+    });
+  }
   return { dots, lines };
 }
 
+const MORPH_SAMPLES = 160;
+type OutlinePoint = readonly [number, number];
+
+function samplePolygon(vertices: readonly OutlinePoint[]): OutlinePoint[] {
+  const lengths = vertices.map((a, index) => {
+    const b = vertices[(index + 1) % vertices.length];
+    return Math.hypot(b[0] - a[0], b[1] - a[1]);
+  });
+  const perimeter = lengths.reduce((sum, length) => sum + length, 0);
+  return Array.from({ length: MORPH_SAMPLES }, (_, index): OutlinePoint => {
+    let target = index / MORPH_SAMPLES * perimeter;
+    let segment = 0;
+    while (target > lengths[segment] && segment < vertices.length - 1) {
+      target -= lengths[segment++];
+    }
+    const a = vertices[segment];
+    const b = vertices[(segment + 1) % vertices.length];
+    const fraction = lengths[segment] ? Math.min(1, target / lengths[segment]) : 0;
+    return [a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction];
+  });
+}
+
+// Sample the fixed outlines once; UI worklets only blend these numeric points.
+const MORPH_OUTLINES: readonly (readonly OutlinePoint[])[] = [
+  Array.from({ length: MORPH_SAMPLES }, (_, index): OutlinePoint => {
+    const angle = -Math.PI / 2 + index / MORPH_SAMPLES * TAU;
+    return [Math.cos(angle) * 0.24, Math.sin(angle) * 0.24];
+  }),
+  samplePolygon([[0, -0.26], [0.24, 0.16], [-0.24, 0.16]]),
+  samplePolygon([[0, -0.2], [0.2, -0.2], [0.2, 0.2], [-0.2, 0.2], [-0.2, -0.2]]),
+];
+
 function morph(size: number, t: number, o: ModeOptions): OrbFrame {
   'worklet';
-  const cycle = 2.3 * 3, tc = t % cycle, k = Math.floor(tc / 2.3), local = tc - k * 2.3, m = local > 1.4 ? ((local - 1.4) / 0.9) ** 2 * (3 - 2 * ((local - 1.4) / 0.9)) : 0, spread = o.spread ?? 1.45, n = Math.max(6, Math.round(34 * (o.iconD ?? 1))), dots: Dot[] = [];
-  const shape = (kind: number, f: number): [number, number] => { const a = -Math.PI / 2 + f * TAU; if (kind === 0) return [Math.cos(a) * 0.24, Math.sin(a) * 0.24]; const v = kind === 1 ? [[0, -0.26], [0.24, 0.16], [-0.24, 0.16]] : [[0, -0.2], [0.2, -0.2], [0.2, 0.2], [-0.2, 0.2], [-0.2, -0.2]]; let total = 0; for (let i = 0; i < v.length; i++) { const a1 = v[i], b = v[(i + 1) % v.length]; total += Math.hypot(b[0] - a1[0], b[1] - a1[1]); } let target = f * total; for (let i = 0; i < v.length; i++) { const a1 = v[i], b = v[(i + 1) % v.length], len = Math.hypot(b[0] - a1[0], b[1] - a1[1]); if (target <= len) return [a1[0] + (b[0] - a1[0]) * target / len, a1[1] + (b[1] - a1[1]) * target / len]; target -= len; } return v[0] as [number, number]; };
-  const pA = k, pB = (k + 1) % 3, pts: [number, number][] = []; for (let i = 0; i < 160; i++) { const f = i / 160, a = shape(pA, f), b = shape(pB, f), p: [number, number] = [(a[0] + (b[0] - a[0]) * m) * spread, (a[1] + (b[1] - a[1]) * m) * spread]; pts.push(p); }
-  const pathLength = Math.max(0.0001, pts.reduce((sum, p, i) => { const q = pts[(i + 1) % pts.length]; return sum + Math.hypot(q[0] - p[0], q[1] - p[1]); }, 0));
-  for (let i = 0; i < n; i++) { const target = i / n * pathLength; let acc = 0; for (let j = 0; j < pts.length; j++) { const a = pts[j], b = pts[(j + 1) % pts.length], len = Math.hypot(b[0] - a[0], b[1] - a[1]); if (acc + len >= target) { const f = len ? (target - acc) / len : 0, pulse = 1 + 0.02 * Math.sin(local * 3.1); dots.push({ x: size / 2 + (a[0] + (b[0] - a[0]) * f) * size * pulse, y: size / 2 + (a[1] + (b[1] - a[1]) * f) * size * pulse, z: 0, r: Math.max(0.35, (o.rDot ?? 0.021) * 1.35 * spread * size), white: 0.1 }); break; } acc += len; } }
+  const cycle = 2.3 * 3;
+  const phase = t % cycle;
+  // Wrap reverse playback into the cycle before indexing the cached outlines.
+  const cycleTime = phase < 0 ? (phase + cycle) % cycle : phase;
+  const shape = Math.floor(cycleTime / 2.3);
+  const local = cycleTime - shape * 2.3;
+  const progress = local > 1.4 ? (local - 1.4) / 0.9 : 0;
+  const blend = progress * progress * (3 - 2 * progress);
+  const spread = o.spread ?? 1.45;
+  const count = Math.max(6, Math.round(34 * (o.iconD ?? 1)));
+  const from = MORPH_OUTLINES[shape];
+  const to = MORPH_OUTLINES[(shape + 1) % 3];
+  const points: [number, number][] = [];
+  for (let index = 0; index < MORPH_SAMPLES; index++) {
+    const a = from[index];
+    const b = to[index];
+    points.push([(a[0] + (b[0] - a[0]) * blend) * spread, (a[1] + (b[1] - a[1]) * blend) * spread]);
+  }
+
+  const lengths: number[] = [];
+  let perimeter = 0;
+  for (let index = 0; index < MORPH_SAMPLES; index++) {
+    const a = points[index];
+    const b = points[(index + 1) % MORPH_SAMPLES];
+    const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    lengths.push(length);
+    perimeter += length;
+  }
+
+  const pulse = 1 + 0.02 * Math.sin(local * 3.1);
+  const radius = Math.max(0.35, (o.rDot ?? 0.021) * 1.35 * spread * size);
+  const dots: Dot[] = [];
+  let segment = 0;
+  let distance = 0;
+  for (let index = 0; index < count; index++) {
+    const target = index / count * perimeter;
+    while (distance + lengths[segment] < target && segment < MORPH_SAMPLES - 1) {
+      distance += lengths[segment++];
+    }
+    const a = points[segment];
+    const b = points[(segment + 1) % MORPH_SAMPLES];
+    const fraction = lengths[segment] ? Math.min(1, (target - distance) / lengths[segment]) : 0;
+    dots.push({
+      x: size / 2 + (a[0] + (b[0] - a[0]) * fraction) * size * pulse,
+      y: size / 2 + (a[1] + (b[1] - a[1]) * fraction) * size * pulse,
+      z: 0, r: radius, white: 0.1,
+    });
+  }
   return { dots, lines: emptyLines };
 }
 
