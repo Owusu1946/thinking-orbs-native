@@ -243,7 +243,10 @@ const MORPH_OUTLINES: readonly (readonly OutlinePoint[])[] = [
 
 function morph(size: number, t: number, o: ModeOptions): OrbFrame {
   'worklet';
-  const cycleTime = t % (2.3 * 3);
+  const cycle = 2.3 * 3;
+  const phase = t % cycle;
+  // Wrap reverse playback into the cycle before indexing the cached outlines.
+  const cycleTime = phase < 0 ? (phase + cycle) % cycle : phase;
   const shape = Math.floor(cycleTime / 2.3);
   const local = cycleTime - shape * 2.3;
   const progress = local > 1.4 ? (local - 1.4) / 0.9 : 0;
