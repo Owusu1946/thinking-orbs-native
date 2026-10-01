@@ -24,6 +24,8 @@ import { ThinkingOrb } from "@mhaadi/thinking-orbs-native";
 
 Supported states are `working`, `searching`, `solving`, `listening`, `connecting`, `weaving`, `composing`, `breathing`, and `shaping`. Supported props are `state`, `size={64 | 20}`, `theme`, `speed`, `paused`, `style`, `accessibilityLabel`, and `testID`.
 
+The animation stops scheduling frames while paused, while the app is inactive, or when reduced motion is enabled. Changes to the system's reduced-motion setting take effect while the app is running. Pausing preserves elapsed time, and resuming continues from that position. A zero, negative, or non-finite `speed` also stops the clock.
+
 ## Publishing
 
 In the npm settings for `@mhaadi/thinking-orbs-native`, add a [trusted publisher](https://docs.npmjs.com/trusted-publishers/) for GitHub Actions with these values:
