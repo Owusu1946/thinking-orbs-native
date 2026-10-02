@@ -2,7 +2,7 @@
 
 React Native implementation of the [thinking-orbs](https://github.com/Jakubantalik/thinking-orbs) indicator family.
 
-The native renderer supports all nine states from the web package. Reanimated builds and records each frame on the UI thread, and React Native Skia draws the resulting picture without per-frame React renders. The renderer reuses two paints and one picture recorder, preserving each dot's radius, grayscale, opacity, and depth order without creating a React component per dot.
+The native renderer supports all nine states from the web package plus Imagining. Reanimated builds and records each frame on the UI thread, and React Native Skia draws the resulting picture without per-frame React renders. The renderer reuses two paints and one picture recorder, preserving each dot's radius, grayscale, opacity, and depth order without creating a React component per dot.
 
 ## Requirements
 
@@ -22,7 +22,19 @@ import { ThinkingOrb } from "@mhaadi/thinking-orbs-native";
 <ThinkingOrb state="breathing" size={64} theme="dark" />;
 ```
 
-Supported states are `working`, `searching`, `solving`, `listening`, `connecting`, `weaving`, `composing`, `breathing`, and `shaping`. Supported props are `state`, `size={64 | 20}`, `theme`, `speed`, `paused`, `style`, `accessibilityLabel`, and `testID`.
+Supported states are `working`, `searching`, `solving`, `listening`, `connecting`, `weaving`, `composing`, `breathing`, `shaping`, and `imagining`. Supported props are `state`, `size={64 | 20}`, `theme`, `speed`, `paused`, `style`, `accessibilityLabel`, and `testID`.
+
+Use `imagining` while generating ideas or exploring possibilities:
+
+```tsx
+<ThinkingOrb state="imagining" size={64} />;
+```
+
+A dotted sphere unfolds into three curved particle sheets around an empty center, then folds back in an eight-second loop. The 20px version uses three sparse strands. This is an activity indicator, not measured progress or a completion signal. Reduced motion holds the open sculpture rather than animating it.
+
+The exported `resolvePreset` result includes `stillTime`, the engine time used for the reduced-motion pose. Existing states retain `0.6`; Imagining uses `3.7` at both sizes.
+
+See [the motion specification](docs/imagining-motion.md) for timing and visual decisions. Run `pnpm test` for deterministic engine checks, `pnpm typecheck` for library types, and `pnpm pack:check` for package validation. The docs playground shares the geometry engine; native rendering still needs verification in a consuming React Native app.
 
 The animation stops scheduling frames while paused, while the app is inactive, or when reduced motion is enabled. Changes to the system's reduced-motion setting take effect while the app is running. Pausing preserves elapsed time, and resuming continues from that position. A zero, negative, or non-finite `speed` also stops the clock.
 
