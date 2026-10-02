@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Focusing
+
+Added `state="focusing"` for bringing gathered information into an answer. Sparse dotted trails align into a magnetic halo around a bright center, then gently release in a seamless six-second loop. The 20px preset simplifies the geometry for small interfaces. Focusing is available in the docs gallery and playground and uses the existing theme, speed, pause, and reduced-motion behavior.
+
 ## 0.1.2 - October 1, 2026
 
 ### More accurate visuals
