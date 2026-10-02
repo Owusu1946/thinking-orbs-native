@@ -1,12 +1,23 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { resolvePreset } from '../dist/engine/all-presets.js';
+import { resolvePreset, STATE_TO_MODE } from '../dist/engine/all-presets.js';
 import { generateFrame } from '../dist/engine/modes.js';
 
 function frame(size, time) {
   const preset = resolvePreset('focusing', size);
   return generateFrame(preset.mode, size, time, preset.options);
 }
+
+test('every public state resolves and generates frames at both supported sizes', () => {
+  for (const state of Object.keys(STATE_TO_MODE)) {
+    for (const size of [20, 64]) {
+      const preset = resolvePreset(state, size);
+      const result = generateFrame(preset.mode, size, 0.6, preset.options);
+      assert.ok(result.dots.length > 0, `${state}/${size} has no visible dots`);
+      assert.ok(preset.speed > 0);
+    }
+  }
+});
 
 for (const size of [20, 64]) {
   test(`focusing ${size}px stays visible, finite, bounded, and depth sorted`, () => {
@@ -40,6 +51,16 @@ for (const size of [20, 64]) {
     for (const dot of before) {
       const distance = Math.min(...after.map(next => Math.hypot(dot.x - next.x, dot.y - next.y, dot.z - next.z)));
       assert.ok(distance < 0.002, `Loop seam moved a dot by ${distance}`);
+    }
+  });
+
+  test(`focusing ${size}px has no jumps at convergence and release boundaries`, () => {
+    for (const time of [1, 3, 4]) {
+      const before = frame(size, time - 0.00001).dots;
+      const after = frame(size, time + 0.00001).dots;
+      for (const dot of before) {
+        assert.ok(after.some(next => Math.hypot(dot.x - next.x, dot.y - next.y, dot.z - next.z) < 0.002));
+      }
     }
   });
 
