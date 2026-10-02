@@ -1,5 +1,5 @@
 /** Resolve the extensionless imports emitted by the library's bundler-oriented build. */
-export async function resolve(specifier, context, nextResolve) {
+export function resolve(specifier, context, nextResolve) {
   if (specifier.startsWith('.') && !specifier.endsWith('.js') && context.parentURL?.includes('/dist/engine/')) {
     return nextResolve(`${specifier}.js`, context);
   }
