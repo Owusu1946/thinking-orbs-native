@@ -131,7 +131,7 @@ const {
       const dark = document.documentElement.dataset.mode === "dark";
       const ratio = canvas.width / displaySize;
       const scale = displaySize / engineSize;
-      const time = reducedMotion.matches ? 0.6 : paused
+      const time = reducedMotion.matches ? preset.stillTime : paused
         ? elapsed
         : ((now - start) / 1000) * preset.speed * speed;
       const frame = generateFrame(preset.mode, engineSize, time, preset.options);
