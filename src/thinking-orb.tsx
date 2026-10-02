@@ -9,6 +9,8 @@ import { useOrbClock } from './use-orb-clock';
 import type { ThinkingOrbProps } from './types';
 
 const LABELS = {
+  imagining: 'Imagining…',
+  focusing: 'Focusing…',
   working: 'Working…', searching: 'Searching…', solving: 'Solving…', listening: 'Listening…',
   connecting: 'Connecting…', weaving: 'Weaving…', composing: 'Composing…', breathing: 'Thinking…', shaping: 'Shaping…',
 } as const;
@@ -33,7 +35,7 @@ export function ThinkingOrb({
 
   const picture = useDerivedValue(() => {
     'worklet';
-    const frame = generateFrame(preset.mode, size, reducedMotion ? 0.6 : time.value, preset.options);
+    const frame = generateFrame(preset.mode, size, reducedMotion ? preset.stillTime : time.value, preset.options);
     const canvas = recorder.beginRecording(bounds);
     drawOrbFrame(canvas, frame, dark, paints);
     return recorder.finishRecordingAsPicture();

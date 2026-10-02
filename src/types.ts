@@ -7,7 +7,9 @@ export type OrbState =
   | 'weaving'
   | 'composing'
   | 'breathing'
-  | 'shaping';
+  | 'shaping'
+  | 'imagining'
+  | 'focusing';
 export type OrbSize = 64 | 20;
 export type OrbTheme = 'auto' | 'dark' | 'light';
 

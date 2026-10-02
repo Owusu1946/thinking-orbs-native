@@ -9,7 +9,7 @@
   },
   "packageManager": "pnpm@11.21.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.6.0"
   },
   "type": "module",
   "sideEffects": false,
@@ -29,14 +29,16 @@
   "files": [
     "dist",
     "src",
+    "docs/imagining-motion.md",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "test": "pnpm build && node --import ./tests/register-engine-loader.mjs --test tests/*.test.mjs",
+    "build": "pnpm clean && tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "tsc --noEmit -p tsconfig.json",
-    "clean": "rm -rf dist",
+    "clean": "node ./scripts/clean.mjs",
     "pack:check": "pnpm build && pnpm exec publint && pnpm pack --dry-run",
     "prepublishOnly": "pnpm pack:check",
     "release:check": "pnpm pack:check"

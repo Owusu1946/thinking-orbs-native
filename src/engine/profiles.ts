@@ -42,6 +42,7 @@ export function scaleRadii(options: ModeOptions, scale: number): ModeOptions {
 }
 
 export const BASE_PROFILES: Record<string, ModeOptions> = {
+  imagine: { lanes: 4, segs: 26, rBase: 0.75, rDepth: 1.4, rsPow: 0.6, rMin: 0.3 },
   globe: { latRings: 17, lonDensity: 44, rBase: 0.6, rDepth: 1.7, rBoost: 1, inkFar: 0.62, inkSpan: 0.54, rsPow: 0.6, rMin: 0.3 },
   orbits: { orbitN: 12, ghostN: 40, ghostR: 0.9, ghostA: 0.5, particles: 3, partR: 1.2, partRDepth: 1.6, rsPow: 0.6, rMin: 0.3 },
   rubik: { latRings: 15, lonDensity: 40, moveCount: 14, rBase: 0.6, rDepth: 1.7, rActive: 0.3, inkFar: 0.62, inkSpan: 0.54, rsPow: 0.6, rMin: 0.3 },
@@ -50,5 +51,6 @@ export const BASE_PROFILES: Record<string, ModeOptions> = {
   braid: { strandN: 52, turns: 3, ghostN: 150, rBase: 1.2, rDepth: 1.8, rsPow: 0.6, rMin: 0.3 },
   ribbon: { lanes: 5, segs: 88, ghostN: 150, rBase: 1.1, rDepth: 1.7, rsPow: 0.6, rMin: 0.3 },
   ring: { lanes: 5, segs: 88, ghostN: 0, faceOn: 1, rBase: 1.1, rDepth: 1.7, rsPow: 0.6, rMin: 0.3 },
+  focus: { trails: 3, segs: 28, ghostN: 18, rBase: 0.9, rDepth: 1.1, coreR: 1, rsPow: 0.6, rMin: 0.3 },
   morph: { rDot: 0.021, iconD: 1, rMin: 0.25 },
 };

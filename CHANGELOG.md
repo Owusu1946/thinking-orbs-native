@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Imagining
+
+Added `state="imagining"` for generating ideas and exploring possibilities. A dotted sphere unfolds into three curved sheets and returns in an eight-second loop, with a simplified 20px preset and an open static pose for reduced motion. Imagining is available in the docs gallery and playground.
+
+The exported `resolvePreset` result now includes `stillTime`. Existing states keep their previous reduced-motion pose.
+### Focusing
+
+Added `state="focusing"` for bringing gathered information into an answer. Sparse dotted trails align into a magnetic halo around a bright center, then gently release in a seamless six-second loop. The 20px preset simplifies the geometry for small interfaces. Focusing is available in the docs gallery and playground and uses the existing theme, speed, pause, and reduced-motion behavior.
+
 ## 0.1.2 - October 1, 2026
 
 ### More accurate visuals
