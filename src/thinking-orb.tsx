@@ -34,7 +34,7 @@ export function ThinkingOrb({
 
   const picture = useDerivedValue(() => {
     'worklet';
-    const frame = generateFrame(preset.mode, size, reducedMotion ? 0.6 : time.value, preset.options);
+    const frame = generateFrame(preset.mode, size, reducedMotion ? preset.stillTime : time.value, preset.options);
     const canvas = recorder.beginRecording(bounds);
     drawOrbFrame(canvas, frame, dark, paints);
     return recorder.finishRecordingAsPicture();

@@ -1,4 +1,5 @@
 import type { OrbSize, OrbState } from '../types';
+import { IMAGINE_STILL_TIME } from './imagine-phase';
 import { BASE_PROFILES, scaleCounts, scaleRadii } from './profiles';
 import type { ModeOptions } from './profiles';
 
@@ -9,10 +10,10 @@ export const STATE_TO_MODE: Record<OrbState, ModeKey> = {
   weaving: 'braid', composing: 'ribbon', breathing: 'ring', shaping: 'morph', imagining: 'imagine',
 };
 
-const PRESETS: Record<ModeKey, Record<OrbSize, { speed: number; count: number; size: number; extra?: ModeOptions }>> = {
+const PRESETS: Record<ModeKey, Record<OrbSize, { speed: number; count: number; size: number; stillTime?: number; extra?: ModeOptions }>> = {
   imagine: {
-    64: { speed: 1, count: 1, size: 1 },
-    20: { speed: 1, count: 1, size: 1, extra: { lanes: 1, segs: 10, rBase: 1.1, rDepth: 1.7 } },
+    64: { speed: 1, count: 1, size: 1, stillTime: IMAGINE_STILL_TIME },
+    20: { speed: 1, count: 1, size: 1, stillTime: IMAGINE_STILL_TIME, extra: { lanes: 1, segs: 10, rBase: 1.1, rDepth: 1.7 } },
   },
   orbits: { 64: { speed: 1.885, count: 1, size: 1 }, 20: { speed: 3.9, count: 0.238, size: 2.4 } },
   globe: { 64: { speed: 2.015, count: 0.42, size: 1.15, extra: { scanMul: 4.08, dimBase: 0.45 } }, 20: { speed: 2.665, count: 0.105, size: 1.75, extra: { scanMul: 4.335, dimBase: 0.45 } } },
@@ -32,5 +33,5 @@ export function resolvePreset(state: OrbState, size: OrbSize) {
   if (preset.count !== 1) options = scaleCounts(options, preset.count);
   if (preset.size !== 1) options = scaleRadii(options, preset.size);
   if (preset.extra) options = { ...options, ...preset.extra };
-  return { mode, speed: preset.speed, options };
+  return { mode, speed: preset.speed, options, stillTime: preset.stillTime ?? 0.6 };
 }
