@@ -2,14 +2,15 @@ import type { OrbSize, OrbState } from '../types';
 import { BASE_PROFILES, scaleCounts, scaleRadii } from './profiles';
 import type { ModeOptions } from './profiles';
 
-export type ModeKey = 'orbits' | 'globe' | 'rubik' | 'wave' | 'web' | 'braid' | 'ribbon' | 'ring' | 'morph';
+export type ModeKey = 'orbits' | 'globe' | 'rubik' | 'wave' | 'web' | 'braid' | 'ribbon' | 'ring' | 'morph' | 'imagine';
 
 export const STATE_TO_MODE: Record<OrbState, ModeKey> = {
   working: 'orbits', searching: 'globe', solving: 'rubik', listening: 'wave', connecting: 'web',
-  weaving: 'braid', composing: 'ribbon', breathing: 'ring', shaping: 'morph',
+  weaving: 'braid', composing: 'ribbon', breathing: 'ring', shaping: 'morph', imagining: 'imagine',
 };
 
 const PRESETS: Record<ModeKey, Record<OrbSize, { speed: number; count: number; size: number; extra?: ModeOptions }>> = {
+  imagine: { 64: { speed: 1, count: 1, size: 1 }, 20: { speed: 1, count: 1, size: 1 } },
   orbits: { 64: { speed: 1.885, count: 1, size: 1 }, 20: { speed: 3.9, count: 0.238, size: 2.4 } },
   globe: { 64: { speed: 2.015, count: 0.42, size: 1.15, extra: { scanMul: 4.08, dimBase: 0.45 } }, 20: { speed: 2.665, count: 0.105, size: 1.75, extra: { scanMul: 4.335, dimBase: 0.45 } } },
   rubik: { 64: { speed: 1.82, count: 0.35, size: 1.05 }, 20: { speed: 1.95, count: 0.088, size: 1.9 } },
