@@ -51,5 +51,6 @@ export const BASE_PROFILES: Record<string, ModeOptions> = {
   braid: { strandN: 52, turns: 3, ghostN: 150, rBase: 1.2, rDepth: 1.8, rsPow: 0.6, rMin: 0.3 },
   ribbon: { lanes: 5, segs: 88, ghostN: 150, rBase: 1.1, rDepth: 1.7, rsPow: 0.6, rMin: 0.3 },
   ring: { lanes: 5, segs: 88, ghostN: 0, faceOn: 1, rBase: 1.1, rDepth: 1.7, rsPow: 0.6, rMin: 0.3 },
+  focus: { trails: 3, segs: 28, ghostN: 18, rBase: 0.9, rDepth: 1.1, coreR: 1, rsPow: 0.6, rMin: 0.3 },
   morph: { rDot: 0.021, iconD: 1, rMin: 0.25 },
 };

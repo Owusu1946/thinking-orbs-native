@@ -8,7 +8,8 @@ export type OrbState =
   | 'composing'
   | 'breathing'
   | 'shaping'
-  | 'imagining';
+  | 'imagining'
+  | 'focusing';
 export type OrbSize = 64 | 20;
 export type OrbTheme = 'auto' | 'dark' | 'light';
 

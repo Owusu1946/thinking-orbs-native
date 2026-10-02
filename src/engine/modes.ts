@@ -1,4 +1,5 @@
 import { imagine } from './imagine';
+import { focus } from './focus';
 import type { ModeKey } from './all-presets';
 import { fibDir, finalizeFrame, makeProj, radiusScale } from './core';
 import type { Dot, FrameLine, OrbFrame } from './types';
@@ -300,6 +301,7 @@ export function generateFrame(mode: ModeKey, size: number, time: number, options
   let frame: OrbFrame;
   switch (mode) {
     case 'imagine': frame = imagine(size, time, options); break;
+    case 'focus': frame = focus(size, time, options); break;
     case 'orbits': frame = orbits(size, time, options); break;
     case 'globe': frame = globe(size, time, options); break;
     case 'rubik': frame = rubik(size, time, options); break;

@@ -3,11 +3,11 @@ import { IMAGINE_STILL_TIME } from './imagine-phase';
 import { BASE_PROFILES, scaleCounts, scaleRadii } from './profiles';
 import type { ModeOptions } from './profiles';
 
-export type ModeKey = 'orbits' | 'globe' | 'rubik' | 'wave' | 'web' | 'braid' | 'ribbon' | 'ring' | 'morph' | 'imagine';
+export type ModeKey = 'orbits' | 'globe' | 'rubik' | 'wave' | 'web' | 'braid' | 'ribbon' | 'ring' | 'morph' | 'imagine' | 'focus';
 
 export const STATE_TO_MODE: Record<OrbState, ModeKey> = {
   working: 'orbits', searching: 'globe', solving: 'rubik', listening: 'wave', connecting: 'web',
-  weaving: 'braid', composing: 'ribbon', breathing: 'ring', shaping: 'morph', imagining: 'imagine',
+  weaving: 'braid', composing: 'ribbon', breathing: 'ring', shaping: 'morph', imagining: 'imagine', focusing: 'focus',
 };
 
 const PRESETS: Record<ModeKey, Record<OrbSize, { speed: number; count: number; size: number; stillTime?: number; extra?: ModeOptions }>> = {
@@ -23,6 +23,7 @@ const PRESETS: Record<ModeKey, Record<OrbSize, { speed: number; count: number; s
   braid: { 64: { speed: 1.625, count: 0.5, size: 1 }, 20: { speed: 2.75, count: 0.1125, size: 1.36 } },
   ribbon: { 64: { speed: 2.34, count: 0.25, size: 0.85, extra: { spin: 0, bandMul: 3.9, wobMul: 1 } }, 20: { speed: 3.12, count: 0.051, size: 1.073, extra: { spin: 0, bandMul: 4.94, wobMul: 1 } } },
   ring: { 64: { speed: 3.24, count: 0.25, size: 0.956, extra: { spin: 0, bandMul: 3.627, wobMul: 0.368 } }, 20: { speed: 3.78, count: 0.028, size: 1.622, extra: { spin: 0, bandMul: 3.968, wobMul: 0.565 } } },
+  focus: { 64: { speed: 1, count: 1, size: 1 }, 20: { speed: 1, count: 1, size: 1, extra: { trails: 2, segs: 12, ghostN: 0, rBase: 1.5, rDepth: 1.5, coreR: 0.55 } } },
   morph: { 64: { speed: 2.405, count: 0.702, size: 0.395, extra: { spread: 1.45 } }, 20: { speed: 2.08, count: 0.53, size: 1.011, extra: { spread: 1.45 } } },
 };
 
